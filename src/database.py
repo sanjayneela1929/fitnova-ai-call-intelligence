@@ -7,7 +7,7 @@ import os
 # DATABASE CONFIGURATION
 # ============================================================
 
-# Get the root project folder
+# Get the project root directory
 PROJECT_ROOT = os.path.dirname(
     os.path.dirname(
         os.path.abspath(__file__)
@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.dirname(
 )
 
 
-# Database will always be created here:
+# Database file location:
 #
 # fitnova-ai-call-intelligence/
 # └── fitnova_calls.db
@@ -99,10 +99,8 @@ def initialize_database():
 # AUTOMATIC DATABASE INITIALIZATION
 # ============================================================
 
-# This runs whenever the database module is imported.
-#
-# It guarantees that the calls table exists before
-# dashboard queries are executed.
+# This runs automatically whenever the application imports
+# this database module.
 
 initialize_database()
 
@@ -827,15 +825,11 @@ def get_filtered_calls(
 
 if __name__ == "__main__":
 
-    initialize_database()
-
-
     print(
 
         "Database initialized successfully!"
 
     )
-
 
     print(
 
