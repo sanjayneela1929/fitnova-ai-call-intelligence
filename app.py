@@ -108,10 +108,6 @@ if not st.session_state.logged_in:
                     "❌ Invalid username or password."
                 )
 
-    st.info(
-        "Demo Login: Username: admin | Password: fitnova123"
-    )
-
     st.stop()
 
 
