@@ -1,17 +1,35 @@
 import sqlite3
 import json
+import os
 
 
-# --------------------------------
-# Database Configuration
-# --------------------------------
+# ============================================================
+# DATABASE CONFIGURATION
+# ============================================================
 
-DATABASE_NAME = "fitnova_calls.db"
+# Get the root project folder
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
 
 
-# --------------------------------
-# Get Database Connection
-# --------------------------------
+# Database will always be created here:
+#
+# fitnova-ai-call-intelligence/
+# └── fitnova_calls.db
+#
+
+DATABASE_NAME = os.path.join(
+    PROJECT_ROOT,
+    "fitnova_calls.db"
+)
+
+
+# ============================================================
+# GET DATABASE CONNECTION
+# ============================================================
 
 def get_connection():
 
@@ -22,9 +40,9 @@ def get_connection():
     return connection
 
 
-# --------------------------------
-# Initialize Database
-# --------------------------------
+# ============================================================
+# INITIALIZE DATABASE
+# ============================================================
 
 def initialize_database():
 
@@ -77,9 +95,21 @@ def initialize_database():
     connection.close()
 
 
-# --------------------------------
-# Save Call Analysis
-# --------------------------------
+# ============================================================
+# AUTOMATIC DATABASE INITIALIZATION
+# ============================================================
+
+# This runs whenever the database module is imported.
+#
+# It guarantees that the calls table exists before
+# dashboard queries are executed.
+
+initialize_database()
+
+
+# ============================================================
+# SAVE CALL ANALYSIS
+# ============================================================
 
 def save_call_analysis(
 
@@ -99,11 +129,13 @@ def save_call_analysis(
 
     )
 
+
     strengths_json = json.dumps(
 
         analysis_result.strengths
 
     )
+
 
     issues_json = json.dumps(
 
@@ -117,15 +149,18 @@ def save_call_analysis(
 
     )
 
+
     action_items_json = json.dumps(
 
         analysis_result.action_items
 
     )
 
+
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -197,20 +232,22 @@ def save_call_analysis(
 
     )
 
+
     connection.commit()
 
     connection.close()
 
 
-# --------------------------------
-# Get All Saved Calls
-# --------------------------------
+# ============================================================
+# GET ALL SAVED CALLS
+# ============================================================
 
 def get_all_calls():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -256,6 +293,7 @@ def get_all_calls():
 
     )
 
+
     rows = cursor.fetchall()
 
     connection.close()
@@ -264,19 +302,20 @@ def get_all_calls():
 
 
 # ============================================================
-# STEP 5.2.1 — ANALYTICS FUNCTIONS
+# ANALYTICS FUNCTIONS
 # ============================================================
 
 
-# --------------------------------
-# Get Total Number of Calls
-# --------------------------------
+# ------------------------------------------------------------
+# GET TOTAL NUMBER OF CALLS
+# ------------------------------------------------------------
 
 def get_total_calls():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -290,22 +329,25 @@ def get_total_calls():
 
     )
 
+
     result = cursor.fetchone()
 
     connection.close()
 
+
     return result[0]
 
 
-# --------------------------------
-# Get Average Overall Score
-# --------------------------------
+# ------------------------------------------------------------
+# GET AVERAGE OVERALL SCORE
+# ------------------------------------------------------------
 
 def get_average_score():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -319,13 +361,16 @@ def get_average_score():
 
     )
 
+
     result = cursor.fetchone()
 
     connection.close()
 
+
     if result[0] is None:
 
         return 0
+
 
     return round(
 
@@ -336,15 +381,16 @@ def get_average_score():
     )
 
 
-# --------------------------------
-# Get Best Performing Advisor
-# --------------------------------
+# ------------------------------------------------------------
+# GET BEST PERFORMING ADVISOR
+# ------------------------------------------------------------
 
 def get_best_advisor():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -368,13 +414,16 @@ def get_best_advisor():
 
     )
 
+
     result = cursor.fetchone()
 
     connection.close()
 
+
     if result is None:
 
         return None
+
 
     return (
 
@@ -391,15 +440,16 @@ def get_best_advisor():
     )
 
 
-# --------------------------------
-# Get Average Category Scores
-# --------------------------------
+# ------------------------------------------------------------
+# GET AVERAGE CATEGORY SCORES
+# ------------------------------------------------------------
 
 def get_category_averages():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -423,9 +473,11 @@ def get_category_averages():
 
     )
 
+
     result = cursor.fetchone()
 
     connection.close()
+
 
     if result is None:
 
@@ -442,6 +494,7 @@ def get_category_averages():
             "next_step_booking": 0
 
         }
+
 
     return {
 
@@ -488,15 +541,16 @@ def get_category_averages():
     }
 
 
-# --------------------------------
-# Get Advisor Performance
-# --------------------------------
+# ------------------------------------------------------------
+# GET ADVISOR PERFORMANCE
+# ------------------------------------------------------------
 
 def get_advisor_performance():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -520,11 +574,14 @@ def get_advisor_performance():
 
     )
 
+
     rows = cursor.fetchall()
 
     connection.close()
 
+
     advisor_data = []
+
 
     for row in rows:
 
@@ -548,23 +605,25 @@ def get_advisor_performance():
 
         )
 
+
     return advisor_data
 
 
 # ============================================================
-# STEP 5.3.1 — FILTERING FUNCTIONS
+# FILTERING FUNCTIONS
 # ============================================================
 
 
-# --------------------------------
-# Get All Advisors
-# --------------------------------
+# ------------------------------------------------------------
+# GET ALL ADVISORS
+# ------------------------------------------------------------
 
 def get_all_advisors():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -580,9 +639,11 @@ def get_all_advisors():
 
     )
 
+
     rows = cursor.fetchall()
 
     connection.close()
+
 
     return [
 
@@ -593,15 +654,16 @@ def get_all_advisors():
     ]
 
 
-# --------------------------------
-# Get All Teams
-# --------------------------------
+# ------------------------------------------------------------
+# GET ALL TEAMS
+# ------------------------------------------------------------
 
 def get_all_teams():
 
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     cursor.execute(
 
@@ -617,9 +679,11 @@ def get_all_teams():
 
     )
 
+
     rows = cursor.fetchall()
 
     connection.close()
+
 
     return [
 
@@ -630,9 +694,9 @@ def get_all_teams():
     ]
 
 
-# --------------------------------
-# Get Filtered Calls
-# --------------------------------
+# ------------------------------------------------------------
+# GET FILTERED CALLS
+# ------------------------------------------------------------
 
 def get_filtered_calls(
 
@@ -649,6 +713,7 @@ def get_filtered_calls(
     connection = get_connection()
 
     cursor = connection.cursor()
+
 
     query = """
 
@@ -690,6 +755,7 @@ def get_filtered_calls(
 
     """
 
+
     parameters = [
 
         min_score,
@@ -707,6 +773,7 @@ def get_filtered_calls(
 
         """
 
+
         parameters.append(
 
             advisor
@@ -721,6 +788,7 @@ def get_filtered_calls(
             AND team = ?
 
         """
+
 
         parameters.append(
 
@@ -744,23 +812,33 @@ def get_filtered_calls(
 
     )
 
+
     rows = cursor.fetchall()
 
     connection.close()
 
+
     return rows
 
 
-# --------------------------------
-# Run Database Initialization
-# --------------------------------
+# ============================================================
+# DIRECT DATABASE TEST
+# ============================================================
 
 if __name__ == "__main__":
 
     initialize_database()
 
+
     print(
 
         "Database initialized successfully!"
+
+    )
+
+
+    print(
+
+        f"Database location: {DATABASE_NAME}"
 
     )
