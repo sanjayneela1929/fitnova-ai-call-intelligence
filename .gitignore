@@ -1,0 +1,16 @@
+.env
+venv/
+.venv/
+
+__pycache__/
+*.pyc
+
+fitnova_calls
+*.db
+*.sqlite
+*.sqlite3
+
+data/*.mp3
+data/*.wav
+data/*.m4a
+data/*.ogg
