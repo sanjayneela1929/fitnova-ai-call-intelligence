@@ -3,4 +3,5 @@ pandas
 plotly
 python-dotenv
 faster-whisper
+google-genai
 pydantic
