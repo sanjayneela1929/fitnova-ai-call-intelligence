@@ -1,7 +1,7 @@
 streamlit
 pandas
-plotly
-python-dotenv
 faster-whisper
+pyannote.audio
 google-genai
-pydantic
+python-dotenv
+psycopg2-binary
