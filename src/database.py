@@ -1,30 +1,54 @@
-import sqlite3
-import json
 import os
+import json
+
+import streamlit as st
+import psycopg2
+
+from dotenv import load_dotenv
+
+
+# ============================================================
+# LOAD ENVIRONMENT VARIABLES
+# ============================================================
+
+load_dotenv()
 
 
 # ============================================================
 # DATABASE CONFIGURATION
 # ============================================================
 
-# Get the project root directory
-PROJECT_ROOT = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
+def get_database_url():
+
+    # --------------------------------------------------------
+    # Streamlit Cloud
+    # --------------------------------------------------------
+
+    if "DATABASE_URL" in st.secrets:
+
+        return st.secrets["DATABASE_URL"]
+
+
+    # --------------------------------------------------------
+    # Local Development
+    # --------------------------------------------------------
+
+    database_url = os.getenv(
+        "DATABASE_URL"
     )
-)
 
 
-# Database file location:
-#
-# fitnova-ai-call-intelligence/
-# └── fitnova_calls.db
-#
+    if database_url:
 
-DATABASE_NAME = os.path.join(
-    PROJECT_ROOT,
-    "fitnova_calls.db"
-)
+        return database_url
+
+
+    raise ValueError(
+
+        "DATABASE_URL not found in "
+        "Streamlit Secrets or .env file."
+
+    )
 
 
 # ============================================================
@@ -33,11 +57,11 @@ DATABASE_NAME = os.path.join(
 
 def get_connection():
 
-    connection = sqlite3.connect(
-        DATABASE_NAME
-    )
+    database_url = get_database_url()
 
-    return connection
+    return psycopg2.connect(
+        database_url
+    )
 
 
 # ============================================================
@@ -55,7 +79,7 @@ def initialize_database():
         """
         CREATE TABLE IF NOT EXISTS calls (
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
 
             advisor TEXT NOT NULL,
 
@@ -92,17 +116,9 @@ def initialize_database():
 
     connection.commit()
 
+    cursor.close()
+
     connection.close()
-
-
-# ============================================================
-# AUTOMATIC DATABASE INITIALIZATION
-# ============================================================
-
-# This runs automatically whenever the application imports
-# this database module.
-
-initialize_database()
 
 
 # ============================================================
@@ -194,7 +210,35 @@ def save_call_analysis(
 
         )
 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s,
+
+            %s
+
+        )
 
         """,
 
@@ -232,6 +276,8 @@ def save_call_analysis(
 
 
     connection.commit()
+
+    cursor.close()
 
     connection.close()
 
@@ -294,19 +340,18 @@ def get_all_calls():
 
     rows = cursor.fetchall()
 
+
+    cursor.close()
+
     connection.close()
+
 
     return rows
 
 
 # ============================================================
-# ANALYTICS FUNCTIONS
-# ============================================================
-
-
-# ------------------------------------------------------------
 # GET TOTAL NUMBER OF CALLS
-# ------------------------------------------------------------
+# ============================================================
 
 def get_total_calls():
 
@@ -330,15 +375,18 @@ def get_total_calls():
 
     result = cursor.fetchone()
 
+
+    cursor.close()
+
     connection.close()
 
 
     return result[0]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET AVERAGE OVERALL SCORE
-# ------------------------------------------------------------
+# ============================================================
 
 def get_average_score():
 
@@ -362,6 +410,9 @@ def get_average_score():
 
     result = cursor.fetchone()
 
+
+    cursor.close()
+
     connection.close()
 
 
@@ -379,9 +430,9 @@ def get_average_score():
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET BEST PERFORMING ADVISOR
-# ------------------------------------------------------------
+# ============================================================
 
 def get_best_advisor():
 
@@ -415,6 +466,9 @@ def get_best_advisor():
 
     result = cursor.fetchone()
 
+
+    cursor.close()
+
     connection.close()
 
 
@@ -438,9 +492,9 @@ def get_best_advisor():
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET AVERAGE CATEGORY SCORES
-# ------------------------------------------------------------
+# ============================================================
 
 def get_category_averages():
 
@@ -473,6 +527,9 @@ def get_category_averages():
 
 
     result = cursor.fetchone()
+
+
+    cursor.close()
 
     connection.close()
 
@@ -539,9 +596,9 @@ def get_category_averages():
     }
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET ADVISOR PERFORMANCE
-# ------------------------------------------------------------
+# ============================================================
 
 def get_advisor_performance():
 
@@ -574,6 +631,9 @@ def get_advisor_performance():
 
 
     rows = cursor.fetchall()
+
+
+    cursor.close()
 
     connection.close()
 
@@ -608,13 +668,8 @@ def get_advisor_performance():
 
 
 # ============================================================
-# FILTERING FUNCTIONS
-# ============================================================
-
-
-# ------------------------------------------------------------
 # GET ALL ADVISORS
-# ------------------------------------------------------------
+# ============================================================
 
 def get_all_advisors():
 
@@ -640,6 +695,9 @@ def get_all_advisors():
 
     rows = cursor.fetchall()
 
+
+    cursor.close()
+
     connection.close()
 
 
@@ -652,9 +710,9 @@ def get_all_advisors():
     ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET ALL TEAMS
-# ------------------------------------------------------------
+# ============================================================
 
 def get_all_teams():
 
@@ -680,6 +738,9 @@ def get_all_teams():
 
     rows = cursor.fetchall()
 
+
+    cursor.close()
+
     connection.close()
 
 
@@ -692,9 +753,9 @@ def get_all_teams():
     ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # GET FILTERED CALLS
-# ------------------------------------------------------------
+# ============================================================
 
 def get_filtered_calls(
 
@@ -749,7 +810,7 @@ def get_filtered_calls(
 
         FROM calls
 
-        WHERE overall_score BETWEEN ? AND ?
+        WHERE overall_score BETWEEN %s AND %s
 
     """
 
@@ -767,10 +828,9 @@ def get_filtered_calls(
 
         query += """
 
-            AND advisor = ?
+            AND advisor = %s
 
         """
-
 
         parameters.append(
 
@@ -783,10 +843,9 @@ def get_filtered_calls(
 
         query += """
 
-            AND team = ?
+            AND team = %s
 
         """
-
 
         parameters.append(
 
@@ -813,6 +872,9 @@ def get_filtered_calls(
 
     rows = cursor.fetchall()
 
+
+    cursor.close()
+
     connection.close()
 
 
@@ -820,19 +882,15 @@ def get_filtered_calls(
 
 
 # ============================================================
-# DIRECT DATABASE TEST
+# DATABASE INITIALIZATION
 # ============================================================
 
 if __name__ == "__main__":
 
+    initialize_database()
+
     print(
 
         "Database initialized successfully!"
-
-    )
-
-    print(
-
-        f"Database location: {DATABASE_NAME}"
 
     )
